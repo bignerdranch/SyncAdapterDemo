@@ -19,7 +19,7 @@ import testapp.bgardner.syncadapterdemo.sync.SyncAdapter;
 public class BaseActivity extends Activity {
     private static final String TAG = "BaseActivity";
     // authority for sync adapter's content provider
-    public static final String AUTHORITY = "com.testapp.bgardner.syncadapterdemo.provider";
+    public static final String AUTHORITY = "com.testapp.bgardner.syncadapterdemo.provider.stub";
     // account type
     public static final String ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo";
     // account name
