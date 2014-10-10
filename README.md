@@ -16,7 +16,8 @@ delete them as well.
 
 The security for this application is very basic. When the app authenticates with
 the server it gets an access token that must be sent with any update or delete
-requests in order to validate that the user can modify the book erratum data.
+requests in order to validate that the user can modify the book erratum data. It
+does not currently do any checks to see if the access token is stale.
 
 The syncing process could also be improved. Currently when the app syncs it will
 push any updates made locally, as well as deleting any records from the server
