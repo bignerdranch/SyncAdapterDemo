@@ -52,6 +52,12 @@
                 android:resource="@xml/authenticator" />
         </service>
 
+        <provider
+            android:name=".contentprovider.SyncAdapterContentProvider"
+            android:authorities="com.testapp.bgardner.syncadapterdemo.provider"
+            android:exported="false"
+            android:syncable="true" />
+
     </application>
 
 </manifest>
