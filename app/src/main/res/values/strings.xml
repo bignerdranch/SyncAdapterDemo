@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SyncAdapterDemo</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="account_name">com.bgardner.testapps.syncadapterdemo</string>
+    <string name="view_count_string">View count: %1$s</string>
+    <string name="account_username_hint">Username</string>
+    <string name="account_username_password">Password</string>
+    <string name="account_sign_in_button_text">Sign In</string>
+    <string name="account_sign_in_text">Sign In</string>
+    <string name="username_and_password_empty_error">Both the username and password are empty!</string>
+    <string name="username_empty_error">Username is empty!</string>
+    <string name="password_empty_error">Password is empty!</string>
+    <string name="authentication_failure">Failed to authenticate with server, please try again.</string>
+    <string name="successfully_authenticated_text">Successfully authenticated with server!</string>
+    <string name="log_out_button_text">Log Out</string>
+    <string name="current_username_string">Currently signed in as: %1$s</string>
+    <string name="insert_erratum_button">Test adding erratum</string>
+    <string name="view_errata_button_text">View Book Errata</string>
+    <string name="menu_item_log_out">Log out</string>
+    <string name="book_errata_course_text">Course: %1$s</string>
+    <string name="book_errata_page_text">Page #: %1$d</string>
+    <string name="book_errata_version_text">Book Version: %1$s</string>
+    <string name="book_errata_description_text">Error description: %1$s</string>
+    <string name="book_errata_list_header">Book Errata List</string>
+    <string name="erratum_course_name_label">Course Name:</string>
+    <string name="erratum_page_number_label">Page Number:</string>
+    <string name="erratum_book_version_label">Book Version:</string>
+    <string name="erratum_error_description_label">Error Description</string>
+    <string name="erratum_user_label">Reporting User:</string>
+    <string name="book_erratum_delete_button_text">Delete Erratum</string>
+
+</resources>
