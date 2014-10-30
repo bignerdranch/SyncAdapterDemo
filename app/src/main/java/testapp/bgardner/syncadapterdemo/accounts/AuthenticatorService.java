@@ -5,10 +5,10 @@ import android.content.Intent;
 import android.os.IBinder;
 
 public class AuthenticatorService extends Service {
-    private Authenticator mAuthenticator;
+    private StubAuthenticator mAuthenticator;
 
     public AuthenticatorService() {
-        mAuthenticator = new Authenticator(this);
+        mAuthenticator = new StubAuthenticator(this);
     }
 
     @Override
