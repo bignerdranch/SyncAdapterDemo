@@ -30,6 +30,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     private EditText mAccountPassword;
     private Button mSignInButton;
     private TextView mErrorTextView;
+    private AccountManager mAccountManager;
 
     public static Intent newIntent(Context context) {
         return new Intent(context, AuthenticatorActivity.class);
@@ -38,7 +39,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkCurrentLogInStatus();
         setContentView(R.layout.activity_authenticator);
 
         mAccountUsername = (EditText) findViewById(R.id.accountUsername);
@@ -46,20 +46,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         mSignInButton = (Button) findViewById(R.id.accountSignIn);
         mSignInButton.setOnClickListener(mSignInClickListener);
         mErrorTextView = (TextView) findViewById(R.id.errorTextView);
-    }
-
-    private void checkCurrentLogInStatus() {
-        AccountManager manager = AccountManager.get(this);
-        Account[] accounts = manager.getAccountsByType(ACCOUNT_TYPE);
-        if (accounts.length != 0) {
-            Account account = accounts[0];
-            String username = account.name;
-            String accessToken = manager.getPassword(account);
-            AuthenticationResult authenticationResult = new AuthenticationResult(username, accessToken);
-            Intent intent = AuthenticatedActivity.newIntent(AuthenticatorActivity.this, authenticationResult);
-            startActivity(intent);
-            finish();
-        }
+        mAccountManager = AccountManager.get(this);
     }
 
     private View.OnClickListener mSignInClickListener = new View.OnClickListener() {
@@ -119,32 +106,40 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         showErrorText();
     }
 
-    private boolean storeAccountCredentials(AuthenticationResult authenticationResult) {
-        Account account = new Account(authenticationResult.getUsername(), ACCOUNT_TYPE);
-        AccountManager manager = AccountManager.get(this);
-        return manager.addAccountExplicitly(account, authenticationResult.getAccessToken(), null);
+    private void finishLogin(Intent intent) {
+        String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+        final Account account = new Account(accountName, ACCOUNT_TYPE);
+        if (getIntent().getBooleanExtra(EXTRA_ADD_NEW_ACCOUNT, false)) {
+            String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+            String authTokenType = getIntent().getStringExtra(EXTRA_AUTH_TYPE);
+
+            mAccountManager.addAccountExplicitly(account, null, null);
+            mAccountManager.setAuthToken(account, authTokenType, authToken);
+        }
+        setAccountAuthenticatorResult(intent.getExtras());
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     private class AuthenticateUserTask extends AsyncTask<String, Void, AuthenticationResult> {
+        private String username;
+        private String password;
 
         @Override
         protected AuthenticationResult doInBackground(String... params) {
-            return attemptAccountAuthentication(params[0], params[1]);
+            username = params[0];
+            password = params[1];
+            return attemptAccountAuthentication(username, password);
         }
 
         @Override
         protected void onPostExecute(AuthenticationResult authenticationResult) {
             Log.d(TAG, "was authentication successful: " + authenticationResult.isSuccessfullyAuthenticated());
             if (authenticationResult.isSuccessfullyAuthenticated()) {
-                boolean accountAdded = storeAccountCredentials(authenticationResult);
-                if (accountAdded) {
-                    //Start the authenticated activity
-                    Intent intent = AuthenticatedActivity.newIntent(AuthenticatorActivity.this, authenticationResult);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Log.d(TAG, "Account has already been added");
-                }
+                final Intent intent = new Intent();
+                intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
+                intent.putExtra(AccountManager.KEY_AUTHTOKEN, authenticationResult.getAccessToken());
+                finishLogin(intent);
             } else {
                 displayAuthenticationError();
                 enableSignInButton();
