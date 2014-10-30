@@ -22,6 +22,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     private static final String TAG = "AuthenticatorActivity";
     // account type
     public static final String ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo";
+    // Intent extra data
+    public static final String EXTRA_ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo.ACCOUNT_TYPE";
+    public static final String EXTRA_AUTH_TYPE = "com.bgardner.testapps.syncadapterdemo.AUTH_TYPE";
+    public static final String EXTRA_ADD_NEW_ACCOUNT = "com.bgardner.testapps.syncadapterdemo.ADD_NEW_ACCOUNT";
     private EditText mAccountUsername;
     private EditText mAccountPassword;
     private Button mSignInButton;
