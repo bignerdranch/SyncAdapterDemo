@@ -67,7 +67,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void setAccessToken() {
         AccountManager manager = AccountManager.get(getContext());
-        Account[] accounts = manager.getAccountsByType(AuthenticatorActivity.ACCOUNT_TYPE);
+        Account[] accounts = manager.getAccountsByType(AuthenticatedActivity.ACCOUNT_TYPE);
         if (accounts.length != 0) {
             Account account = accounts[0];
             mAccessToken = manager.getPassword(account);
