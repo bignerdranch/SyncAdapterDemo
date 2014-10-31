@@ -21,7 +21,6 @@ import testapp.bgardner.syncadapterdemo.accounts.AuthenticationResult;
 public class AuthenticatorActivity extends AccountAuthenticatorActivity {
     private static final String TAG = "AuthenticatorActivity";
     // account type
-    public static final String ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo";
     // Intent extra data
     public static final String EXTRA_ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo.ACCOUNT_TYPE";
     public static final String EXTRA_AUTH_TYPE = "com.bgardner.testapps.syncadapterdemo.AUTH_TYPE";
@@ -108,7 +107,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
     private void finishLogin(Intent intent) {
         String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-        final Account account = new Account(accountName, ACCOUNT_TYPE);
+        String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
+        final Account account = new Account(accountName, accountType);
         if (getIntent().getBooleanExtra(EXTRA_ADD_NEW_ACCOUNT, false)) {
             String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
             String authTokenType = getIntent().getStringExtra(EXTRA_AUTH_TYPE);
@@ -138,6 +138,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
             if (authenticationResult.isSuccessfullyAuthenticated()) {
                 final Intent intent = new Intent();
                 intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
+                intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AuthenticatedActivity.ACCOUNT_TYPE);
                 intent.putExtra(AccountManager.KEY_AUTHTOKEN, authenticationResult.getAccessToken());
                 finishLogin(intent);
             } else {
