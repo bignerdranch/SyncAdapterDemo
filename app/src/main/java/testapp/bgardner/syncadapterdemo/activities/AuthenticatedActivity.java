@@ -2,6 +2,10 @@ package testapp.bgardner.syncadapterdemo.activities;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.ContentResolver;
@@ -18,10 +22,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import java.io.IOException;
 
 import testapp.bgardner.syncadapterdemo.R;
 import testapp.bgardner.syncadapterdemo.accounts.AuthenticationResult;
@@ -33,6 +38,9 @@ import testapp.bgardner.syncadapterdemo.models.BookErratum;
 public class AuthenticatedActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor>, AuthenticatedInterface{
     private static final String TAG = "AuthenticatedActivity";
     public static final String AUTHENTICATION_RESULT_EXTRA = "AuthenticatedActivity.AuthenticationResultExtra";
+    // Account type and auth token type
+    public static final String ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo.USER_ACCOUNT";
+    public static final String AUTH_TOKEN_TYPE = "com.bgardner.testapps.syncadapterdemo.FULL_ACCESS";
     // authority for sync adapter's content provider
     public static final String AUTHORITY = ContentProviderContract.AUTHORITY;
     // sync interval
@@ -44,6 +52,7 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     private AuthenticationResult mAuthenticationResult;
     private Account mAccount;
     private BookErrataAdapter mBookErrataAdapter;
+    private AccountManager mAccountManager;
 
     public static Intent newIntent(Context context, AuthenticationResult authenticationResult) {
         Intent intent = new Intent(context, AuthenticatedActivity.class);
@@ -54,20 +63,31 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "Create the authenticated activity");
+        mAccountManager = AccountManager.get(this);
+        AccountManagerFuture<Bundle> authTokenFuture = mAccountManager.getAuthTokenByFeatures(ACCOUNT_TYPE, AUTH_TOKEN_TYPE, null, this, null, null, new AccountManagerCallback<Bundle>() {
+            @Override
+            public void run(AccountManagerFuture<Bundle> future) {
+                Bundle bundle = null;
+                try {
+                    bundle = future.getResult();
+                    final String accessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+                    Log.d(TAG, "Got access token: " + accessToken);
+                } catch (AuthenticatorException e) {
+                    Log.e(TAG, "Got an authenticator exception");
+                } catch (OperationCanceledException e) {
+                    Log.e(TAG, "Got an operation canceled exception");
+                    finish();
+                } catch (IOException e) {
+                    Log.e(TAG, "Got an IO Exception");
+                }
+            }
+        }, null);
+
         setContentView(R.layout.activity_authenticated);
 
         mCurrentUsernameTextView = (TextView) findViewById(R.id.currentUsernameTextView);
         mBookErrataListView = (ListView) findViewById(R.id.book_errata_list_view);
-
-        mAuthenticationResult = (AuthenticationResult) getIntent().getSerializableExtra(AUTHENTICATION_RESULT_EXTRA);
-        if (mAuthenticationResult != null) {
-            mCurrentUsernameTextView.setText(getUsernameText());
-            setupAccountInstance();
-            startPeriodicSync();
-        } else {
-            // No authentication result, redirect back to the authenticator activity
-            returnToAuthenticatorActivity();
-        }
 
         getLoaderManager().initLoader(BOOK_ERRATA_ID, null, this);
         mBookErrataAdapter = new BookErrataAdapter(getBaseContext(), null);
@@ -109,7 +129,7 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
 
     private void setupAccountInstance() {
         AccountManager manager = AccountManager.get(this);
-        Account[] accounts = manager.getAccountsByType(AuthenticatorActivity.ACCOUNT_TYPE);
+        Account[] accounts = manager.getAccountsByType(ACCOUNT_TYPE);
         mAccount = accounts[0];
     }
 
@@ -137,7 +157,7 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
         removePeriodicSync();
 
         AccountManager accountManager = AccountManager.get(getApplicationContext());
-        Account currentAccount = new Account(mAuthenticationResult.getUsername(), AuthenticatorActivity.ACCOUNT_TYPE);
+        Account currentAccount = new Account(mAuthenticationResult.getUsername(), ACCOUNT_TYPE);
         accountManager.removeAccount(currentAccount, null, null);
 
         returnToAuthenticatorActivity();
