@@ -2,7 +2,7 @@
 
 <sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
               android:contentAuthority="com.testapp.bgardner.syncadapterdemo.provider"
-              android:accountType="com.bgardner.testapps.syncadapterdemo"
+              android:accountType="com.bgardner.testapps.syncadapterdemo.USER_ACCOUNT"
               android:userVisible="false"
               android:supportsUploading="false"
               android:allowParallelSyncs="false"
