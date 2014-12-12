@@ -5,9 +5,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-/**
- * Created by bgardner on 10/10/14.
- */
 public class StubContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
