@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import testapp.bgardner.syncadapterdemo.R;
+import testapp.bgardner.syncadapterdemo.sync.StubSyncAdapter;
 import testapp.bgardner.syncadapterdemo.sync.SyncAdapter;
 
 
@@ -21,7 +22,7 @@ public class BaseActivity extends Activity {
     // authority for sync adapter's content provider
     public static final String AUTHORITY = "com.testapp.bgardner.syncadapterdemo.provider.stub";
     // account type
-    public static final String ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo";
+    public static final String ACCOUNT_TYPE = "com.bgardner.testapps.syncadapterdemo.DUMMY_USER_ACCOUNT";
     // account name
     public static final String ACCOUNT_NAME = "dummy_account";
     // sync interval
@@ -45,22 +46,21 @@ public class BaseActivity extends Activity {
         mAccount = createSyncAccount(this);
 
         Log.d(TAG, "Add periodic sync with account: " + mAccount);
-        ContentResolver.setIsSyncable(mAccount, AUTHORITY, 1);
         ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
-        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
+        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, Bundle.EMPTY, SYNC_INTERVAL);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         Log.d(TAG, "Remove periodic sync from account");
-        ContentResolver.removePeriodicSync(mAccount, AUTHORITY, new Bundle());
+        ContentResolver.removePeriodicSync(mAccount, AUTHORITY, Bundle.EMPTY);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        IntentFilter intentFilter = new IntentFilter(SyncAdapter.BROADCAST_ACTION);
+        IntentFilter intentFilter = new IntentFilter(StubSyncAdapter.BROADCAST_ACTION);
         registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
