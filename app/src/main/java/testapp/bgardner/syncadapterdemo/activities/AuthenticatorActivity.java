@@ -105,17 +105,16 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         showErrorText();
     }
 
-    private void finishLogin(Intent intent) {
+    private void setupAccount(Intent intent) {
         String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
         String accountType = intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
         final Account account = new Account(accountName, accountType);
-        if (getIntent().getBooleanExtra(EXTRA_ADD_NEW_ACCOUNT, false)) {
-            String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
-            String authTokenType = getIntent().getStringExtra(EXTRA_AUTH_TYPE);
+        String authToken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+        String authTokenType = getIntent().getStringExtra(EXTRA_AUTH_TYPE);
 
-            mAccountManager.addAccountExplicitly(account, null, null);
-            mAccountManager.setAuthToken(account, authTokenType, authToken);
-        }
+        mAccountManager.addAccountExplicitly(account, null, null);
+        mAccountManager.setAuthToken(account, authTokenType, authToken);
+
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
         finish();
@@ -140,7 +139,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
                 intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
                 intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, AuthenticatedActivity.ACCOUNT_TYPE);
                 intent.putExtra(AccountManager.KEY_AUTHTOKEN, authenticationResult.getAccessToken());
-                finishLogin(intent);
+                setupAccount(intent);
             } else {
                 displayAuthenticationError();
                 enableSignInButton();
