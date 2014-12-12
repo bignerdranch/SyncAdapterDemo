@@ -34,13 +34,10 @@ import testapp.bgardner.syncadapterdemo.models.User;
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String TAG = "SyncAdapter";
     private static final String ENDPOINT = "http://syncadapterdemo.herokuapp.com/";
-    private static final String WELCOME_PATH = "welcome/index.json";
     private static final String USERS_INDEX_PATH = "users.json";
     private static final String BOOK_ERRATA_INDEX_PATH = "book_errata.json";
     private static final String BOOK_ERRATA_POST_PATH = "book_errata/";
-    private static final String COUNT_FIELD = "count";
-    public static final String BROADCAST_ACTION = "testapp.bgardner.syncadapterdemo.PAGE_VIEW_ACTION";
-    public static final String BROADCAST_PERMISSION = "testapp.bgardner.syncadapterdemo.PRIVATE";
+
     ContentResolver mContentResolver;
     String mAccessToken;
 
@@ -53,7 +50,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         // background data fetching here
         Log.d(TAG, "Perform the background sync");
-        setAccessToken();
+        AccountManager manager = AccountManager.get(getContext());
+
+        mAccessToken = manager.peekAuthToken(account, AuthenticatedActivity.AUTH_TOKEN_TYPE);
+        Log.d(TAG, "Have access token: " + mAccessToken);
         try {
             pushBookErrataData();
             fetchUsersData();
@@ -62,16 +62,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(TAG, "Failed to sync data from server", exception);
         } catch (JSONException e) {
             Log.e(TAG, "Failed to get value from json object", e);
-        }
-    }
-
-    private void setAccessToken() {
-        AccountManager manager = AccountManager.get(getContext());
-        Account[] accounts = manager.getAccountsByType(AuthenticatedActivity.ACCOUNT_TYPE);
-        if (accounts.length != 0) {
-            Account account = accounts[0];
-            mAccessToken = manager.getPassword(account);
-            Log.d(TAG, "have access token: " + mAccessToken);
         }
     }
 
@@ -125,15 +115,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    private void fetchPageViewData() throws IOException, JSONException {
-        String outputData = DataFetcher.getUrl(getWelcomeUrl());
-        JSONObject jsonObject = getPageViewJsonData(outputData);
-        int pageViewCount = jsonObject.getInt(COUNT_FIELD);
-        Intent intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra(BaseActivity.PAGE_VIEW_EXTRA, pageViewCount);
-        getContext().sendBroadcast(intent, BROADCAST_PERMISSION);
-    }
-
     private void fetchUsersData() throws IOException, JSONException {
         String outputData = DataFetcher.getUrl(getUsersIndexUrl());
         JSONArray jsonArray = getUsersJsonArray(outputData);
@@ -144,10 +125,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         String outputData = DataFetcher.getUrl(getBookErrataIndexUrl());
         JSONArray jsonArray = getBookErrataJsonArray(outputData);
         parseBookErrataJsonData(jsonArray);
-    }
-
-    private String getWelcomeUrl() {
-        return ENDPOINT + WELCOME_PATH;
     }
 
     private String getUsersIndexUrl() {
@@ -164,15 +141,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     private String getErratumDeletePath(BookErratum erratum) {
         return ENDPOINT + BOOK_ERRATA_POST_PATH + erratum.getWebServerId() + ".json";
-    }
-
-    private JSONObject getPageViewJsonData(String jsonData) {
-        try {
-            return (JSONObject) new JSONTokener(jsonData).nextValue();
-        } catch (JSONException exception) {
-            Log.e(TAG, "Failed to parse json data", exception);
-            return null;
-        }
     }
 
     private JSONArray getUsersJsonArray(String userJsonData) {
