@@ -3,6 +3,7 @@
     <string name="app_name">SyncAdapterDemo</string>
     <string name="hello_world">Hello world!</string>
     <string name="account_name">com.bgardner.testapps.syncadapterdemo.USER_ACCOUNT</string>
+    <string name="dummy_account_name">com.bgardner.testapps.syncadapterdemo.DUMMY_USER_ACCOUNT</string>
     <string name="view_count_string">View count: %1$s</string>
     <string name="account_username_hint">Username</string>
     <string name="account_username_password">Password</string>
