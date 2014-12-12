@@ -49,10 +49,10 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     private static final int BOOK_ERRATA_ID = 0;
     private TextView mCurrentUsernameTextView;
     private ListView mBookErrataListView;
-    private AuthenticationResult mAuthenticationResult;
     private Account mAccount;
     private BookErrataAdapter mBookErrataAdapter;
     private AccountManager mAccountManager;
+    private String mAccessToken;
 
     public static Intent newIntent(Context context, AuthenticationResult authenticationResult) {
         Intent intent = new Intent(context, AuthenticatedActivity.class);
@@ -63,7 +63,6 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "Create the authenticated activity");
         mAccountManager = AccountManager.get(this);
         AccountManagerFuture<Bundle> authTokenFuture = mAccountManager.getAuthTokenByFeatures(ACCOUNT_TYPE, AUTH_TOKEN_TYPE, null, this, null, null, new AccountManagerCallback<Bundle>() {
             @Override
@@ -71,15 +70,17 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
                 Bundle bundle = null;
                 try {
                     bundle = future.getResult();
-                    final String accessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-                    Log.d(TAG, "Got access token: " + accessToken);
+                    mAccessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+                    setupAccountInstance();
+                    startPeriodicSync();
+                    Log.d(TAG, "Got access token: " + mAccessToken);
                 } catch (AuthenticatorException e) {
-                    Log.e(TAG, "Got an authenticator exception");
+                    Log.e(TAG, "Got an authenticator exception", e);
                 } catch (OperationCanceledException e) {
-                    Log.e(TAG, "Got an operation canceled exception");
+                    Log.e(TAG, "Got an operation canceled exception", e);
                     finish();
                 } catch (IOException e) {
-                    Log.e(TAG, "Got an IO Exception");
+                    Log.e(TAG, "Got an IO Exception", e);
                 }
             }
         }, null);
@@ -130,13 +131,19 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     private void setupAccountInstance() {
         AccountManager manager = AccountManager.get(this);
         Account[] accounts = manager.getAccountsByType(ACCOUNT_TYPE);
-        mAccount = accounts[0];
+        if (accounts.length > 0) {
+            mAccount = accounts[0];
+        }
     }
 
     private void startPeriodicSync() {
-        ContentResolver.setIsSyncable(mAccount, AUTHORITY, 1);
-        ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
-        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
+        Log.d(TAG, "Have account: " + mAccount);
+        if (mAccount != null) {
+            ContentResolver.setIsSyncable(mAccount, AUTHORITY, 1);
+            ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
+            ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
+            Log.d(TAG, "Added periodic sync to account");
+        }
     }
 
     private void removePeriodicSync() {
@@ -144,7 +151,7 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     }
 
     private String getUsernameText() {
-        return getString(R.string.current_username_string, mAuthenticationResult.getUsername());
+        return getString(R.string.current_username_string, mAccount.name);
     }
 
     private void returnToAuthenticatorActivity() {
@@ -156,9 +163,7 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
     private void logoutUser() {
         removePeriodicSync();
 
-        AccountManager accountManager = AccountManager.get(getApplicationContext());
-        Account currentAccount = new Account(mAuthenticationResult.getUsername(), ACCOUNT_TYPE);
-        accountManager.removeAccount(currentAccount, null, null);
+        mAccountManager.removeAccount(mAccount, null, null);
 
         returnToAuthenticatorActivity();
     }
@@ -186,7 +191,7 @@ public class AuthenticatedActivity extends Activity implements LoaderManager.Loa
 
     @Override
     public String getCurrentUsersUsername() {
-        return mAuthenticationResult.getUsername();
+        return mAccount.name;
     }
 
 
